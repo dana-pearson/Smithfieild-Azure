@@ -11,8 +11,8 @@ HUBINSTANCE="${hubinstance}"
 PKG_PATH="${install_pkg_dest}"
 INSTALL_PKG="${install_pkg}"
 INSTALL_DIR="$PKG_PATH/automation_platform"
-DIRS=(varlv tmplv)
-SIZES=(30 5)
+VARLV="40G"
+TMPLV="10G"
 SSHKEYPATH=/home/$SSHUSER/.ssh/$SSHKEY
 SSH_OPTS="-o StrictHostKeyChecking=no"
 CTRLINPUT=/tmp/ctrl_input_file.tmp
@@ -29,21 +29,17 @@ PREPARE_APPDISK () {
   ##### Configure app disk
   ########################
     fdisk $ROOTDEV <<EOI
-  n
+n
 
 
 
-  w
-  EOI
+w
+EOI
   # extend root volume group
   vgextend rootvg /dev/sda3
 
-  index=0
-  for DIR in $DIRS
-  do
-    lvextend -L ${SIZES[$index]} -r /dev/rootvg/$DIR
-    ((index++))
-  done
+  lvextend -L $VARLV -r /dev/rootvg/varlv
+  lvextend -L $TMPLV -r /dev/rootvg/tmplv
 
 }
 

@@ -30,9 +30,9 @@ resource "azurerm_public_ip" "aap_public_ip" {
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
   allocation_method   = "Dynamic"
-  lifecycle {
-    create_before_destroy = true
-  }
+  #lifecycle {
+  #  create_before_destroy = true
+  #}
 }
 
 # Create network interface
@@ -87,6 +87,8 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   #size                  = "Standard_A8_v2"
   size                  = "Standard_DS3_v2"
 
+  user_data = base64encode(templatefile("${var.user_data}", local.user_data_vars))
+
   os_disk {
     name                 = var.os_disk_name
     caching              = "ReadWrite"
@@ -114,20 +116,6 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
     storage_account_uri = azurerm_storage_account.my_storage_account.primary_blob_endpoint
   }
 
-  user_data = base64encode(templatefile("${var.user_data}", {
-    timezone             = var.timezone
-    sshuser              = var.sshuser
-    username             = var.redhat_login_user
-    password             = var.redhat_login_pw
-    ssh_priv_key         = var.ssh_priv_key
-    #controller           = length(var.controller) != 0 ? join(" ", var.controller) : ""
-    #automationcontroller = length(var.automationcontroller) != 0 ? join(" ", var.automationcontroller) : ""
-    #hubinstance          = length(var.hubinstance) != 0 ? join(" ", var.hubinstance) : ""
-    #dbinstance           = length(var.dbinstance) != 0 ? var.dbinstance : ""
-    install_pkg          = var.install_pkg
-    install_pkg_dest     = var.install_pkg_dest
-  }))
-
   provisioner "file" {
     source      = var.ssh_priv_key
     destination = join("/", ["/home", var.sshuser, "/.ssh", var.ssh_priv_key])
@@ -141,16 +129,16 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
     }
   }
 
-  #provisioner "file" {
-  #  source      = join("/", [var.install_pkg_path, var.install_pkg])
-  #  destination = join("/", [var.install_pkg_dest, var.install_pkg])
-  #
-  #  connection {
-  #    type        = "ssh"
-  #    user        = var.sshuser
-  #    private_key = file("${path.module}/${var.ssh_priv_key}")
-  #    host        = "${self.public_ip_address}"
-  #  }
-  #}
+  provisioner "file" {
+    source      = join("/", [var.install_pkg_path, var.install_pkg])
+    destination = join("/", [var.install_pkg_dest, var.install_pkg])
+  
+    connection {
+      type        = "ssh"
+      user        = var.sshuser
+      private_key = file("${path.module}/${var.ssh_priv_key}")
+      host        = "${self.public_ip_address}"
+    }
+  }
 
 }
