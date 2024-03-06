@@ -83,17 +83,28 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   location              = data.azurerm_resource_group.rg.location
   resource_group_name   = data.azurerm_resource_group.rg.name
   network_interface_ids = [azurerm_network_interface.my_terraform_nic.id]
-  #size                  = "Standard_DS1_v2"
-  #size                  = "Standard_A8_v2"
-  size                  = "Standard_DS3_v2"
+  size                  = var.hub_size
 
-  user_data = base64encode(templatefile("${var.user_data}", local.user_data_vars))
+  user_data = base64encode(templatefile("${var.user_data}", {
+    sshuser              = var.sshuser
+    username             = var.redhat_login_user
+    password             = var.redhat_login_pw
+    timezone             = var.timezone
+    ssh_priv_key         = var.ssh_priv_key
+    install_pkg          = var.install_pkg
+    install_pkg_dest     = var.install_pkg_dest
+    filesystems      = var.hub_filesystems
+    controller   = length(var.controller) != 0 ? join(" ", var.controller) : ""
+    dbinstance   = length(var.dbinstance) != 0 ? join(" ", var.dbinstance) : ""
+    execinstance = length(var.execinstance) != 0 ? join(" ", var.execinstance) : ""
+    hubinstance  = length(var.hubinstance) != 0 ? join(" ", var.hubinstance) : ""
+  }))
 
   os_disk {
     name                 = var.os_disk_name
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
-    disk_size_gb         = 90
+    disk_size_gb         = var.hub_os_disk_sz
   }
 
   source_image_reference {
@@ -132,7 +143,7 @@ resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
   provisioner "file" {
     source      = join("/", [var.install_pkg_path, var.install_pkg])
     destination = join("/", [var.install_pkg_dest, var.install_pkg])
-  
+   
     connection {
       type        = "ssh"
       user        = var.sshuser

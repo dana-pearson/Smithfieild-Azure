@@ -1,18 +1,5 @@
 locals {
     current_time = formatdate("YYMMDDhhmm", timestamp())
-    user_data_vars = {
-      timezone             = var.timezone
-      sshuser              = var.sshuser
-      username             = var.redhat_login_user
-      password             = var.redhat_login_pw
-      ssh_priv_key         = var.ssh_priv_key
-      install_pkg          = var.install_pkg
-      install_pkg_dest     = var.install_pkg_dest
-      controller   = length(var.controller) != 0 ? join(" ", var.controller) : ""
-      dbinstance   = length(var.dbinstance) != 0 ? join(" ", var.dbinstance) : ""
-      hubinstance  = length(var.hubinstance) != 0 ? join(" ", var.hubinstance) : ""
-    }
-
 }
 
 variable "timezone" {
@@ -132,9 +119,19 @@ variable "dbinstance" {
   default     = ""
 }
 
+variable "execinstance" {
+  type        = string
+  default     = ""
+}
+
 variable "hubinstance" {
   type        = string
   default     = ""
+}
+
+variable "hub_size" {
+  type    = string
+  default = "Standard_DS3_v2"
 }
 
 variable "hub_name" {
@@ -142,11 +139,17 @@ variable "hub_name" {
   default = "AAP-Hub"
 }
 
+variable "hub_os_disk_sz" {
+  type    = number
+  default = 100
+}
+
 variable "hub_filesystems" {
-  type = map(number)
+  description = "non-default filesystems in the form of LV_name=lvsize(in Gb):mount point"
+  type = map(string)
   default = {
-    total  = 50
-    varlv  = 40
-    tmplv  = 10
+    varlv = "40G:/var"
+    tmplv = "10G:/tmp"
+    awxlv = "20G:/var/lib/awx"
   }
 }
