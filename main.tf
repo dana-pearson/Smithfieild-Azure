@@ -36,7 +36,7 @@ resource "azurerm_public_ip" "aap_public_ip" {
 }
 
 # Create network interface
-resource "azurerm_network_interface" "my_terraform_nic" {
+resource "azurerm_network_interface" "aap_nic" {
   name                = var.nic_name
   location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "my_terraform_nic" {
 
 # Connect the security group to the network interface
 resource "azurerm_network_interface_security_group_association" "aap_nsg_assoc" {
-  network_interface_id      = azurerm_network_interface.my_terraform_nic.id
+  network_interface_id      = azurerm_network_interface.aap_nic.id
   network_security_group_id = data.azurerm_network_security_group.aap_nsg.id
 }
 
@@ -77,12 +77,13 @@ resource "azurerm_storage_account" "my_storage_account" {
   account_replication_type = "LRS"
 }
 
+########################
 # Create virtual machine
-resource "azurerm_linux_virtual_machine" "my_terraform_vm" {
+resource "azurerm_linux_virtual_machine" "aap_vm" {
   name                  = join("-", ["AAP-Hub", local.current_time])
   location              = data.azurerm_resource_group.rg.location
   resource_group_name   = data.azurerm_resource_group.rg.name
-  network_interface_ids = [azurerm_network_interface.my_terraform_nic.id]
+  network_interface_ids = [azurerm_network_interface.aap_nic.id]
   size                  = var.hub_size
 
   user_data = base64encode(templatefile("${var.user_data}", {
