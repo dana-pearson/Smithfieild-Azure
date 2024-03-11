@@ -103,10 +103,10 @@ EOI
       echo "ERROR: not enough free space to create $FSNAME"
   fi
 
-  if [[ $FREEGB -gt $FSSIZE ]]
-  then
-    lvextend -L $FSSIZE -r /dev/rootvg/$FSNAME
-  fi
+  #if [[ $FREEGB -gt $FSSIZE ]]
+  #then
+  #  lvextend -L $FSSIZE -r /dev/rootvg/$FSNAME
+  #fi
 
   %{ endfor ~}
 
